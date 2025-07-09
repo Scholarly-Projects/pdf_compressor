@@ -15,7 +15,7 @@ python -m venv .venv
 
 ## Install Libraries
 
-brew install ghostscript
+pip install pymupdf Pillow pikepdf
 
 ## Place PDF files into the A directory.
 
