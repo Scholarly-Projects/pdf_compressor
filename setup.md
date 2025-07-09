@@ -35,6 +35,6 @@ _mcom.pdf for medium
 
 _scom.pdf for strong
 
-## Check Output
+## Check Output (Percentage decrease will also be printed after running)
 
 find B -name "*.pdf" -exec du -k {} + | sort -n | awk '{printf "%s KB\t%s\n", $1, $2}'
