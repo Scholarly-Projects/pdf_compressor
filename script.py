@@ -1,31 +1,39 @@
 import sys
 import subprocess
+import platform
 from pathlib import Path
 
 # Custom quality settings with actual downsampling controls
 compression_settings = {
     'light': {
         'suffix': '_lcom.pdf',
-        'ColorImageResolution': 200,
-        'GrayImageResolution': 200,
-        'MonoImageResolution': 200,
-        'JPEGQ': 85
+        'ColorImageResolution': 300,
+        'GrayImageResolution': 300,
+        'MonoImageResolution': 300,
+        'JPEGQ': 80
     },
     'medium': {
         'suffix': '_mcom.pdf',
-        'ColorImageResolution': 120,
-        'GrayImageResolution': 120,
-        'MonoImageResolution': 120,
-        'JPEGQ': 75
+        'ColorImageResolution': 144,
+        'GrayImageResolution': 144,
+        'MonoImageResolution': 144,
+        'JPEGQ': 70
     },
-    'heavy': {
-        'suffix': '_hcom.pdf',
+    'strong': {
+        'suffix': '_scom.pdf',
         'ColorImageResolution': 72,
         'GrayImageResolution': 72,
         'MonoImageResolution': 72,
         'JPEGQ': 60
     }
 }
+
+def remove_quarantine_mac(output_path):
+    if platform.system() == 'Darwin':
+        try:
+            subprocess.run(['xattr', '-d', 'com.apple.quarantine', str(output_path)], stderr=subprocess.DEVNULL)
+        except Exception:
+            pass
 
 def compress_with_gs(input_path, output_path, settings):
     cmd = [
@@ -35,6 +43,11 @@ def compress_with_gs(input_path, output_path, settings):
         '-dNOPAUSE',
         '-dQUIET',
         '-dBATCH',
+        '-dPreserveEPSInfo=true',
+        '-dAutoFilterColorImages=false',
+        '-dAutoFilterGrayImages=false',
+        '-dColorImageFilter=/DCTEncode',
+        '-dGrayImageFilter=/DCTEncode',
         f'-dColorImageDownsampleType=/Average',
         f'-dGrayImageDownsampleType=/Average',
         f'-dMonoImageDownsampleType=/Subsample',
@@ -53,13 +66,14 @@ def compress_with_gs(input_path, output_path, settings):
     ]
     try:
         subprocess.run(cmd, check=True)
+        remove_quarantine_mac(output_path)
         print(f"Compressed: {input_path.name} -> {output_path.name}")
     except subprocess.CalledProcessError as e:
         print(f"Error compressing {input_path.name}: {e}")
 
 def optimize_pdfs(level):
     if level not in compression_settings:
-        print("Invalid compression level. Choose from: light, medium, heavy")
+        print("Invalid compression level. Choose from: light, medium, strong")
         sys.exit(1)
 
     input_dir = Path('A')
@@ -75,7 +89,7 @@ def optimize_pdfs(level):
 
 if __name__ == '__main__':
     if len(sys.argv) != 2 or sys.argv[1] not in compression_settings:
-        print("Usage: python script.py [light|medium|heavy]")
+        print("Usage: python script.py [light|medium|strong]")
         sys.exit(1)
 
     optimize_pdfs(sys.argv[1])
