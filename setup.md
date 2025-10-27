@@ -17,6 +17,10 @@ python -m venv .venv
 
 pip install pymupdf Pillow pikepdf
 
+## Create an A and B folder in the repo
+
+mkdir A B
+
 ## Place PDF files into the A directory.
 
 ## Then run the script with one of the following commands:
